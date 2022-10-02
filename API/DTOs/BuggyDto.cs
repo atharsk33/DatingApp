@@ -4,9 +4,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace API.DTOs
 {
-    public class RegisterDto
+    public class BuggyDto
     {
-        public RegisterDto(string Username, string password) 
+        public BuggyDto(string Username, string password) 
         {
             this.Username = Username;
             this.Password = password;
@@ -15,7 +15,6 @@ namespace API.DTOs
         [Required]
         public string Username { get; set; }  
         [Required]
-        [StringLength(8, MinimumLength = 4 )]
         public string Password { get; set; }          
     }
 }
