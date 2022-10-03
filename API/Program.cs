@@ -1,9 +1,9 @@
+using API.Data;
 using API.Extentions;
 using API.Middleware;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-
-
 
 // Add services to the container.
 
@@ -19,6 +19,22 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+app.MigrateDatabase(app);
+
+// using var scope  = app.Services.CreateScope();
+// var service = scope.ServiceProvider;
+// try
+// {
+//     var context = service.GetRequiredService<DataContext>();
+//     context.Database.MigrateAsync();
+// }
+// catch (Exception ex)
+// {
+
+// }
+
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
