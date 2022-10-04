@@ -1,0 +1,123 @@
+
+
+-- Json Generator 
+ https://json-generator.com/
+ 
+ -- To drop database
+ dotnet ef database drop
+ 
+ -- Section 1 - Intoduction
+ 1 - Introduction to the cource.
+	- Building Dating App. Messeging system, live chat, paging and sorting.
+	- .NET 5 + Angular + Entity Framework + HTML + boostrap + TypeScript + C#
+	- Practical course
+	- Learn by build
+	
+ 2 - Setting up development environment.
+	- download .NET Core from https://dotnet.microsoft.com/en-us/
+    - download and install Node.js	- Convert and compile tyscript file into javascript.
+	- Code Editor - Visual Studio Code Editor
+	- Postman - to test API
+	
+ 3 - Getting Help.
+	- Try and solve the problem yourself first.
+	- Check the basics.
+	
+ 4 - Course assest and source code.
+	- Source code : github.com/TryCatchLearn/DatingApp
+ 
+ -- Section 2 - Building a walking skeleton part 1 - API
+ 
+ -- Section 3 - Building a walking skeleton part 2 - Angular
+ 
+ -- Section 4 - Authentication Basic
+ 
+ -- Section 5 - Client Login and Register
+ 
+ -- Section 6 - Routing in Angular
+ 
+ -- Section 7 - Error Handling
+ 
+ -- Section 8 - Extending API
+ 
+ -- Section 9 - Building the user interface
+99 - Introduction
+ TypeScript:
+ 1. Using TypeScript Types.
+ 2. Using The Async Pipe
+ 3. Using boostrap for style.
+ 4. Basic css trick to enhance the look.
+ 5. Using a 3rd party photo gallery.
+ 
+100 - Using TypeScript
+ Type safety. 	
+ let data: numner | string = 42;
+ data = "10";
+ 
+ interface car {
+  color:string;
+  model:string;
+  topSpeed?:number;
+ }
+ const car1 = {color:'blue', model:'BMW'}
+ const car2 = {color:'red', model:'Benz', topSpeed:100}
+ 
+101 - Creating the Member Inteface.
+	- Json to ts search for convert json to ts.
+	- Copy and paste json data to get models according.
+ 
+102 - Adding member service.
+	- make use of Angular Environment files. Environment.ts
+	- added apiurl
+	- import environment in service and remove hardcode api url
+	- added new member service. ng g s member --skip-test
+	- passed token to api request.
+ 
+103 - Retrieving the list of members.
+    - Modification in Memner list component.
+    - Import Member service in.
+    
+104 - Create member cards
+	- Added new component member-card
+    - Added @Input for reciving member from parent i.e member-list component
+	- design the member-cad html
+	
+105 - Adding Style to the card
+	- Added cs for animation afer hovering image.
+	- Added some other style.
+	- Encapsulation? - css level. ViewEncapsulation.Emulate. for local, ViewEncapsulation.None for global.
+	
+106 - Adding Anumated buttons.
+	- added buttons on image of user for profile-like-envelop
+	- added css for design buttons
+
+107 - using an inteceptor to send the token.
+	- removed send token code from member service; 
+	- adding interceptor to send token to every request.
+	- added jwt interceptor.
+
+108 - Routing to the member details page
+	- Changes in Member details component.
+	- Change the routing from id to username 
+	- include memberserivce and activeroute 
+	- added load member function - fetched id from usr using - this.route.snapshot.paramMap.get('username')
+	- resolved undefine member error by adding ngif befor displaying details
+	
+109 - Styling the member details page part 1
+	- changes in member details component.
+	- Added details of member and style the page.
+	
+110 - Styling the member details page part 2
+	- added tabs modulte in shared module and export it.
+	- copy paste style from student assests.
+	- added tabs for about, interests, photo and messages.
+	
+111 - Adding Photo Gallery
+	- Installed ngx-gallery 
+		npm npm install @kolkov/ngx-gallery --force
+	  from https://github.com/kolkov/ngx-gallery
+	- Configure and added gallery to the Member details component.
+	- added user.png photo from Student Assest to the angular assests.
+	  
+	
+	
