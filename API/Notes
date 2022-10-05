@@ -118,6 +118,75 @@
 	  from https://github.com/kolkov/ngx-gallery
 	- Configure and added gallery to the Member details component.
 	- added user.png photo from Student Assest to the angular assests.
-	  
+
+112 - Summary.
+
+-- Section 10 - Updating Resorces.
+113 - Introduction
+	- Implement persistence when udating resources in the API and gaining an uderstanding of:
+	- Angular Template forms
+	- The CanDeactivate Route Guard
+	- The @ViewChild decorator
+	- Persisting changes to the API
+	- Adding loading indicators to the client app
+	- Caching data in Angular services
+	
+114 - Creating member edit component
+	- Added member-edit component in members folder. - added in routing
+	- Added Account and Member service in member-edit component. and display username on html.
+	
+115 - Creating edit template form.
+	- Desing html of edit form from copying details component.
+	- Desing html page of edit member - fetch member data and render in edit page.
+
+116	- Adding the update functionality
+	- added @ViewChild('editForm') editForm: NgForm; to track and reset form.
+	- added this.editForm.reset(this.member); in updateMember() to reset form.
+	- editForm.dirty added to track form status and enable and disable warning and submit button.
+	- form="editForm" this in button to submit form, this will work if submit button not in form.
+	- form header look like --  <form #editForm="ngForm" id="editForm" (submit)="updateMember()">
+	
+117 - Adding a CanDeactive route Guard
+	- Added Guard -- ng g guard prevent_unsaved_changes --skip-tests
+	- Import MemberEditComponent in guard.
+	- Added {path:'member/edit', component:MemberEditComponent, canDeactivate:[PreventUnsavedChangesGuard]}, in routing.
+	- checked editform.dirty and show confirm message in guard.
+	- Added @HostListener('window:beforeunload', ['$event']) unloadNotification($event: any) {
+				if(this.editForm.dirty) $event.returnValue = true;
+			};
+	- To listen event of the browser to show prent notofication.
+	
+118 - Persisting changes in the API.
+	- Added MemberUpdateDto class.
+	- Mapped in Automapper helper - CreateMap<MemberUpdateDto, AppUser>();
+	- Added httpput UpdateMember method in UserController, to find username var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+	- check update methods on postman
+	
+119 - Updating the user in client App
+	- Added updateMembers in Member service.
+	- Modify UpdateMember method of member-edit component.
+	
+120 - Adding loading indicator.
+	- Install NGX-Spinner for spinners. -- ng add ngx-spinner
+	- imported NgxSpinnerModule in appmodule.
+	- Added new service 'busy'
+	- Added new interceptor loading. Impoer busy service in loading interceptor.
+	- Added interceptor as provicer in appmodule.
+	- added html in app.component.html <ngx-spinner type="ball-scale-multiple" bdColor= 'rgba(255,255,255,0)' color ='#333333'><h3>Loading....</h3></ngx-spinner>
+	
+121 - Using the service to store state. 
+	- Modified the memberservice, stored the member data in members:Member[] = [];
+	- check if data avaliable in members[] if yes then return of(this.members); else store data in members[] and return;
+	- Modified getMember find and return member from members[] if not call api.
+	- UpdateMember find member index and also update in member[]
+	- update the type of members$: Observable<Member[]>; in Memberlistcomponent.
+	- Removed loadMembers from Memberlistcomponent and modify NgOnIt wiht this.members$ = this.memberService.getMembers();
+	- Modified the html of Memberlistcomponent - *ngFor="let member of members$ | async"
+	
+122 - Section 10 Summary.
+
+
+
+	
 	
 	

@@ -4,6 +4,8 @@
     <button (click)="get401Error()" class="btn btn-outline-primary mr-3 mt-3">Test 401 Error</button>
     <button (click)="get404Error()" class="btn btn-outline-primary mr-3 mt-3">Test 404 Error</button>
     <button (click)="get400ValidationError()" class="btn btn-outline-primary mr-3 mt-3">Test 400 Validation Error</button>
+    <br />
+    <button (click)="loadSpinner()"  class="btn btn-outline-primary mr-3 mt-3" >Show Spinner</button>
 
     <div class="row mt-5" *ngIf="validatioErrors.length > 0">
         <ul class="text-danger">
@@ -11,5 +13,22 @@
                 {{error}}
             </li>
         </ul>
+    </div>
+
+    <div class="row mt-5" *ngIf="showSpinner">
+        <!-- <ngx-spinner>
+            <h3>Loading....</h3>
+        </ngx-spinner> -->
+        <ngx-spinner type="ball-scale-multiple" bdColor= 'rgba(255,255,255,0)' color ='#333333'>
+            <h3>Loading....</h3>
+        </ngx-spinner>
+        <!-- <ngx-spinner type="line-scale-party">
+            <h3>Loading....</h3>
+        </ngx-spinner> -->
+
+        <!-- <ngx-spinner bdColor = "rgba(0, 0, 0, 0.8)" size = "large" color = "#fff" type = "ball-scale-multiple" [fullScreen] = "true">
+            <p style="color: white" > Loading... </p>
+        </ngx-spinner> -->
+
     </div>
 </ng-container>

@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
+import { NgxSpinnerService } from 'ngx-spinner';
 
 @Component({
   selector: 'app-test-errors',
@@ -10,8 +11,9 @@ import { Component, OnInit } from '@angular/core';
 export class TestErrorsComponent implements OnInit {
   baseUrl = "https://localhost:5001/api/";
   validatioErrors:string[] = []; 
+  showSpinner:boolean = false;
 
-  constructor(private http:HttpClient) { }
+  constructor(private http:HttpClient, private spinnerService:NgxSpinnerService) { }
 
   ngOnInit(): void {
   }
@@ -60,6 +62,16 @@ export class TestErrorsComponent implements OnInit {
       error: (e) => {console.log(e);
       this.validatioErrors = e;}
     });
+  }
+
+  loadSpinner() {
+    this.showSpinner = true;
+    this.spinnerService.show();
+
+    setTimeout(() => {
+      this.spinnerService.hide();
+      this.showSpinner = false;
+    }, 2000);
   }
 
 } 
