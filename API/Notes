@@ -185,8 +185,85 @@
 	
 122 - Section 10 Summary.
 
+-- Section 11 Adding photo upload functionality. 
+123 - Introduction 
+	- Implement photo upload functionality in the application and gain an uderstanding
+		of the following:
+	- Phote storage options.
+		- Database
+		- Files System in server
+		- Cloud service - Cloudinary
+	- Adding related entities.
+	- Using 3rd party API
+	- Using th Debugger (again)
+	- Updating and deleting resources.
+	- What to return when creating resources in a REST based API.
+	
+124 - Cloudinary Account.
+    - created a cloudinay account with sk55 gmail.
+	- Documentation link - https://cloudinary.com/documentation/dotnet_integration#sample_projects
 
+125 - Configure cloudinary in the API.
+	- Insatall nuget pakage - CloudinaryDotNet
+	- Added CloudName, Apikey and Apisecret to the appsetting.json.
+	- Strongly configured in servcice - ApplicationServiceExtention - AddApplicationServices - services.Configure<CloundinarySetting>(config.GetSection("CloudinarySetting"));
 
+126 - Adding a photo service
+	- Added IPhotoservice interface 
+	- Added PhotoService and implment the IPhotoservice inteface.
+	- Added login to upload and delete photo from cloudinary.
+	- Added service to ApplicationServiceExtention - services.AddScoped<IPhotoservice, PhotoService>();
+
+127 - Updating the Users Controller
+	- inject the photo service in the user control.
+	- added a AddPhoto method to add photo to cloudinary.
+	- added class ClaimsPrincipalExtensions for GetUserName Extention method to ClaimsPrincipal.
+
+128	- Testing the photo upload.
+	- Unable debugger - crt-shift-p -> .NET: Generator Assest for build and debug -> dotnet watch run -> goto debugger -> select attatch -> click on start debugging -> select api.exe
+	- Goto postman and test section 11
+	- If resource is created we should return 201 create response.
 	
+129 - Using the Ceated At Route method. (for send 201 response)
+	- Added route name to the GetUser method of  UsersController -  [HttpGet("{username}", Name = "GetUser")] 
+	- change the return of AddPhoto method of UserController.
+	- change from  return _mapper.Map<PhotoDto>(photo); to - return CreatedAtRoute("GetUser", new { username = user.UserName }, _mapper.Map<PhotoDto>(photo));
 	
+130 - Adding a photo editor component 
+	- Added a photo-editor component in the members folder.
+	- Added the photo-editor component in member-edit component under photo edit section -  <app-photo-editor [member]="member"></app-photo-editor>
 	
+131 - Adding a photo uploader. part 1
+	- ng2-file-upload ng pakage for uploading files. - https://valor-software.com/ng2-file-upload/
+	- add/install pakage - npm install ng2-file-upload --save 
+	- copy code from line 17 to 116 from ng2-file-upload example.
+	- Configured the ng2-file uploader in photo-editor component.
+	
+132 - Adding a photo uploader part 2
+	- Made changes in the html of photo-editor component.
+	
+133 - Setting the main photo in the API.
+	- Added a SetMainPhoto method in UserController with route -- [HttpPut("set-main-photo/{photoId}")]  
+	- added a logic to flase previous photo and make current photo to Ismain.
+	
+134 - Adding the main photo image to the nav bar.
+	- Added PhotoUrl filed in the UserDto.
+	- Include photos in user and return photourl from the login method of account controller.
+	- Added photoUrl in the user interface of angular.
+	- Modify the setCurrentUser method of account service
+           
+135 - Setting the main photo in the client
+	- Added setMainPhoto method in the member service.
+	- Added setMainPhoto in the photo-editor component.
+	- Modify the main button in html of photo-editor component --  <button [disabled]="photo.isMain" (click)="setMainPhoto(photo)" [ngClass]="photo.isMain ? 'btn-success active' : 'btn-outline-success'" class="btn btn-sm"> Main</button>
+	
+136 - Deleting photo - API 
+	- Added a DeletePhoto method in the UsersController 
+	- check for main photo, null and cloudinary fails.
+	
+137 - Deleting the photo - client
+	- Added deletePhoto method in the member servcice.
+	- added deletePhoto method in the photo-editor component.
+	- modify delete button in html of photo-editor component. - <button [disabled]="photo.isMain" (click)="deletePhoto(photo.id)" class="btn btn-sm btn-danger"><i class="fa fa-trash"></i></button>
+	
+138 - Section 11 Summary.
