@@ -267,3 +267,91 @@
 	- modify delete button in html of photo-editor component. - <button [disabled]="photo.isMain" (click)="deletePhoto(photo.id)" class="btn btn-sm btn-danger"><i class="fa fa-trash"></i></button>
 	
 138 - Section 11 Summary.
+
+
+-- Section 12 - Reactive Forms
+
+139 - Introduction 
+	- Implement more advanced forms using Reactive Forms in Angular and understand how to:
+	- Use Reactive Forms
+	- Use Angular Validation for inputs
+	- Implement custom validators
+	- Implement reusable form controls
+	- Working with Date inputs.
+	
+140 - Reactive Form introduction -
+	- Import ReactiveFormsModule to the AppModule.
+	- Added a Reactive Form for register new user.
+	- Define registerForm: FormGroup; in register component.
+	- Initialize the form in ngOnIt
+	- Added [formGroup]="registerForm"  and formControlName="username" in the html.
+
+141 - Client side validation.
+	- Added a validation for registerForm files -     username: new FormControl('Hello', Validators.required), 
+	  password: new FormControl('', [Validators.required, Validators.minLength(4), Validators.maxLength(8)]),
+
+142 - Adding custom validators
+	- added method for custom validation - matchValues(matchTo: string): ValidatorFn {
+      return (control: AbstractControl) => { return control.value === (control?.parent?.controls as { [key: string]: AbstractControl })[matchTo].value ? null : { isMatching: true }; } }
+	- added validator in register form  confirmPassword: new FormControl('', [Validators.required, this.matchValues('password')])
+
+143 - Validation feedback
+	- Added a class for invalid input - [class.is-invalid]="registerForm.get('confirmPassword')?.errors && registerForm.get('confirmPassword')?.touched"
+	- Added validation feedback to inputs
+	    <div *ngIf="registerForm.get('confirmPassword')?.hasError('required')" class="invalid-feedback">Please enter a confirm password</div>
+        <div *ngIf="registerForm.get('confirmPassword')?.hasError('isMatching')" class="invalid-feedback">Confirm password must match password</div>
+
+144 - Creating reusable text inputs.
+	- Added new component ng g c text-input --skip-tests
+	- Modify test-input-component.ts 
+	- Added  @Input() label: string; - @Input() type = 'text'; - constructor(@Self() public ngControl: NgControl) { this.ngControl.valueAccessor = this; } 
+	- Added html for common input 
+			<div class="form-group">
+				<input [class.is-invalid]="ngControl.touched && ngControl.invalid" type="{{type}}}}" class="form-control"
+					[formControl || null]="ngControl.control" placeholder="{{label}}" />
+				<div *ngIf="ngControl.control?.errors?.['required']" class="invalid-feedback">Please enter a {{label}}}</div>
+				<div *ngIf="ngControl.control?.errors?.['minlength']" class="invalid-feedback">
+					{{label}}} must be at least {{ngControl.control?.errors?.['minlength']['requiredLength']}}
+				</div>
+				<div *ngIf="ngControl.control?.errors?.['maxlength']" class="invalid-feedback">
+					{{label}}} must be at most {{ngControl.control?.errors?.['maxlength']['requiredLength']}}
+				</div>
+				<div *ngIf="ngControl.control?.errors?.['isMatching']" class="invalid-feedback">
+				Password do not match
+				</div>
+			</div>
+	- update tconfig.json - "strictTemplates": false - by me
+	- Update html code of register form - <app-text-input [formControl]="registerForm.controls['password']" [label]="'Password'" [type]="'password'"></app-text-input>
+	
+145 - Using the form builder service.
+	- injected FormBuilder in the register component.
+	- change the initialization of registerForm: FormGroup.
+	- this.registerForm = this.fb.group({
+         username: ['', Validators.required],
+         password: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(8)]],
+         confirmPassword: ['', [Validators.required, this.matchValues('password')]]
+      });
+	  
+146 - Expanding the register form.
+	- Added more inputs in registration form , Gender, Known As, DOB, city, country.
+	
+147 - Adding reusable data input.
+	- imported BsDatepickerModule in shared moduler and exported as well.
+	- Added new component for data-input ng g c date-input.
+	- added css for datetime picker in angular.json -- "./node_modules/ngx-bootstrap/datepicker/bs-datepicker.css",
+	- configure the bs datetime picker in component -  @Input() label:string; @Input() maxDate:Date; bsConfig: Partial<BsDatepickerConfig>;
+	- constructor(@Self() public ngControl: NgControl) { this.ngControl.valueAccessor = this; this.bsConfig = { containerClass: 'theme-red', dateInputFormat: 'DD MMMM YYYY' } }
+
+148 - Updating API registration method.
+	- Added new fileds in RegisterDto.
+	- Added new mapper in autoMapperProfiles - Helper -  CreateMap<RegisterDto, AppUser>();
+	- added  var user = _mapper.Map<AppUser>(register); to the register method of account controller.
+	- added knownAs filed in UserDto and retrun it from register and login method.
+
+149 - Client side registration.
+	- Added validationErrors: string[] = []; to show list of server sides validation.
+	- Modify register() method of register component redirect to members page if success else show errors.
+	- tested the functionality and fixes the photos updated issues of default photo.
+	
+150 - Section 12 summary.
+	
