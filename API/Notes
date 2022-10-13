@@ -355,3 +355,134 @@
 	
 150 - Section 12 summary.
 	
+
+-- Section 13 - Paging, sorting and filtering.
+151 - Introduction
+	- Implement paging, sorting, filtering and gain an understanding of the following:
+	- 1. How to implement pagination on the API & client.
+	- 2. Deferred Execution using IQuerable -
+	- 3. How to implement filtering on  API & client
+	- 4. How to implement sorting on API & client
+	- 5. Using action Filters
+	- 6. Adding a TimeAgo pipe
+	- 7. Implement caching in the client for paginated resources.
+	- Deferred Execution - IQuerable<User> -> var Query = context.Users.Where(x => x.Gender == gender).Take(5).Skip(5).AsQuerable();
+	- Execution - Query.ToListAsync() - Query.ToArrayAsync() - Query.ToDictionary() - Query.Count();
+
+152 - Adding a paged list class.
+	- Make reusable class for the pagination.
+	- Added Generic PagedList class in Helpers of Api.
+	- Added CreateAsync static method in the PageList class to receiv data from DB.
+
+153 - Adding Helper classes for pagination.
+	- Added PaginationHeader class to pass the pagination details in response header and sent back to the client.
+	- Added HttpExtensions.cs class to add pagination details to header.
+	- Added AddPaginationHeader extention method int HttpExtensions and added pagination header to the response.
+	- Added UserParams.cs class in helper to add default pageSize, MaxPageSize and default PageNumber.
+	
+154 - Using the pagination classes.
+	- Changed the return type of GetMembersAsync in IUserRepository to PagedList<MemnerDto> and alose take UserParams as parameter.
+	- Changed the implimentation of GetMembersAsync in UserRepository as well.
+	- Modified the GetUsers method of UsersController to return PageList<MemberDto> and pagination details in header.
+	
+155 - Setting up the client pagination.
+	- Added Pagination.ts interface in model folder.
+	- Modified the getMembers method of memberService.
+	- Added loadMembers method in the member-list component.
+	- Made the changes in html of member-list component.
+	
+156 - Using the angular boostrap pagination compenent.
+	- import PaginationModule from 'ngx-boostrap/pagination' in shared module.
+	- Modified html of member-list compenent to add pagination directry.
+	
+157 - Adding filtering to the API.
+	- Added CurrentUserName and Gender property in userparam.
+	- Modified the GetUsers method of UserController.
+	- Modified the GetMembersAsync method of UserRepository - added where condition on gender and currentuser.
+
+158 - Adding additional filters.
+	- Added min and max age property in the UserParams.
+	- Modified the GetMembersAsync method of UserRepository. added condition on min and max age.
+
+159 - Cleaning up the member service.
+	- Added a Gender property in the UserDto. to avoid server call to get gender.
+	- Update Gender in Login and register method.
+	- Added knownAs and gender property in User interface of the client.
+	- Added a UserParams.ts to add all the params to send to the api.
+	- Added getMembers(userParams: UserParams) to the member servcice.
+	- Added getPaginationHeader to the member servcice to get pagination header.
+	- Added private getPaginatedResult<T>(url: string, params: HttpParams) to member servcice to return generic result.
+	- Modified the changes in the member-list compenent.
+
+160 - Adding filter buttons the client.
+	- added and initalized userParams in the member-list component using account service.
+	- modified the member-list html component to show filtes.
+	- added resetFilters method to reset the filter.
+	
+161 - Adding sorting functionality.
+	- Added OrderBy property in the userParams clss of api.
+	- modified GetMembersAsync method of the member service.
+	    query = userParams.OrderBy switch 
+                {
+                    "created" => query.OrderByDescending(u => u.Created),
+                    _ => query.OrderByDescending(u => u.LastActive)
+                };
+
+162 - Adding a action filter.
+	- Added LogUserActivity.cs in the helper folder of api. implement the IAsyncActionFilter.
+		public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+        {
+            var resultContext = await next();
+
+            if (resultContext.HttpContext.User.Identity.IsAuthenticated) return;
+            
+            var username = resultContext.HttpContext.User.GetUserName();
+            var repo = resultContext.HttpContext.RequestServices.GetService<IUserRepository>();
+            var user = await repo.GetUserByUserNameAsync(username);
+            user.LastActive = DateTime.Now;
+            await repo.SaveAllAsync();
+             
+        }
+	- added attrinute to the base controller  [ServiceFilter(typeof(LogUserActivity))].
+
+163 - Making the Last Active action filter more optimal.
+	- Added -new Claim(JwtRegisteredClaimNames.NameId, user.Id.ToString()), in token service. to fetch user by id.
+	- Modified ClaimsPrincipalExtensions-GetUserName() to change the parameter.
+	- added GetUserId method in the ClaimsPrincipalExtensions.
+
+164 - Sorting on the client.
+	- imported ButtonsModule from ngx-boostrap/buttons
+	- Added redio button for sorting on html of member-list component.
+	- modified the getMembers method of the member servcice. added orderby parameter.
+	
+165 - Formating Dates.
+	- npm install ngx-timeago --save 
+	- imported TimeagoModule in the shared module.
+	- added {{member.lastActive | timeago}} pipe in the html of member details component.
+
+166 - Restoring the caching for the members.
+	- Declared   memberCache = new Map();
+	- Storing the value in map with key, key is join params of user like //console.log(Object.values(userParams).join('-'));
+	-  var response = this.memberCache.get(Object.values(userParams).join('-')); if(response) { return of(response); }
+	- return this.getPaginatedResult<Member[]>(this.baseUrl + "users", params)
+    .pipe(map(response => { this.memberCache.set(Object.values(userParams).join('-'), response); return response; }));
+	
+167 - Restoring caching for the member details.
+	- getMember(username: string){
+		let member = [...this.memberCache.values()]
+		.reduce((arr, elem) => arr.concat(elem.result), [])
+		.find((member: Member) => member.username === username);
+		if(member) { return of(member); }
+		return this.http.get<Member>(this.baseUrl + 'users/' + username); }
+ 
+168 - Remembering the filters for a user in the service.
+	- moved UserParam declaration from member-list component to member service.
+		this.accountService.currentUser$.pipe(take(1)).subscribe(user => {
+      this.user = user;
+      this.userParams = new UserParams(user); });
+	- Added other helper method in member service to get, set and reset UserParams.
+
+169 - Section 13 summary.
+
+ 
+	
