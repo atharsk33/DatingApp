@@ -484,5 +484,53 @@
 
 169 - Section 13 summary.
 
- 
+-- Section 14 - Adding the like user feature.
+170 - Intoduction
+	- Implement the 'like user' functionality and gain an uderstanding of the following.
+	- 1. Many to many relationships 
+	- 2. Configuring entities in the DBContext.
+	- Fluent API
+		AppUser - Has One SourceUser - with Many LikedUsers
+		AppUser - Hse one LikedUser - with Many  LikedByUsers
+
+171 - Adding a likes entity
+	- Added a UserLike entity in entities folder.
+	- Added LikedByUsers and LikedUsers property in AppUser.cs Entity.
+	- Configure UserLike entity in the DataContext.
+	- Add migration and rerun the API.
+	- Likes Table created with SourceUserId and LikedUserId
 	
+172 - Adding a likes repository
+	- Added LikesDto in DTO folder.
+	- Added ILikesRepository interface, with 3 methods 1. GetUserLike, 2.GetUserWithLikes, GetUserLikes
+	- Added LikesRepository repository in Data folder.
+	- Added a likes service in ApplicationServiceExtention.
+
+173 - Implementing the Likes Repository.
+	- Implemented the LikesRepository.
+	
+174 - Controller methods for the likes fautures.
+	- Added AddLike(string username) and GetUserLikes(string predicate) endpoint on the Likes Controller.
+	
+175 - Setting up the likes functions in the Angular app.
+	- Added addLike and getLikes in the member service.
+	- Added addLike in member-cad component and (click)="addLike(member)" to the html.
+	- Modified the error interceptor to check error object and show error message to the toastr. typeof(error.error) === 'object'
+	
+176 - Adding the like component.
+	- added loadLikes() in the list component and load the member on the html.
+	- fetched the liked/likedby members from the member service.
+
+177 - Adding pagination to the likes.
+	- removed pagination related properties from the UserParam and create separeate base class as pagination.cs
+	- Added LikesParam.cs for like parameters.
+	- Changed the return type of GetUserLikes to PageList.
+	- Modified the GetUserLikes of LikesRepository -  return await PagedList<LikeDto>.CreateAsync(likedUsers, param.PageNumber, param.PageSize);
+	- Modified the GetUserLikes controller method, added pagination header - Response.AddPaginationHeader(users.CurrentPage, users.PageSize, users.TotalCount, users.TotalPages);
+	
+178 - Paginating the likes on the client.
+	- Modified the getLikes() of member servcice.
+	- modified loadLikes() and Added pageChanged() in the list component.
+	- Added pagination html in the list component.
+
+179 - Section 14 summary.
