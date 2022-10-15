@@ -534,3 +534,105 @@
 	- Added pagination html in the list component.
 
 179 - Section 14 summary.
+
+-- Section 15 - Adding the messaging feature.
+
+180 - Introduction
+	- Implement the Messeging functionality and gain an uderstanding of the follwoing.
+	- 1. More many to many to many relationships.
+	- 2. Using query params in Angular
+	- 3. Using Route resolvers in Angular.
+	
+181 - Setting up the entities for the messaging.
+	- Added Message.cs entity in API.
+	- Update AppUser.cs, added MessagesSent and MessageRecieved properties.
+	- Updated the DataContext, added the message entity and related configurations.
+	- Created the migrations and restart API.
+	
+182 - Setting up the message repository.
+	- Added IMessageRepository interface.
+	- Added MessageDto.cs in Dto folder. added more filed like SenderPhotoUrl and ReceipientPhotoUrl.
+	- Added MessageRepository and implememted IMessageRepository methods.
+	- Added sevice map in ApplicationServiceExtention Extention.
+	
+183 - Setting up the automapper profiles.
+	- Configured automapper, configured SenderPhotoUrl and ReceipientPhotoUrl.
+	- Added CreateMessageDto.
+	
+184 - Adding a message controller.
+	- Added a MessagesController 
+	- Added the logic of - CreateMessage().
+	
+185 - Getting the messages from the repo.
+	- Added MessageParams.cs in Helper folder.
+	- Implemented the GetMessagesForUser() in MessageRepository.
+	- Added GetMessagesForUser() in the MessageController.
+
+186 - Getting messages thread for 2 users.
+	- Implemented GetMessageThread() of MessageRepository.
+	- Added GetMessageThread() in the message controller.
+
+187 - Setting up the Angular app for messaging 
+	- Added Message.ts interface - convert json to ts - model
+	- Added new 'message' service - ng g s message 
+	- Added paginationHelper.ts and moved the pagination method to it from member service.
+	- Added getMessages() to the message service.
+	- Added loadMessages() to the Message component.
+	
+188 - Designing the Inbox.
+	- Designed the html of the message component.
+	
+189 - Adding message thread in the client.
+	- Added getMessageThread() in message servcice.
+	- Added member-message component in members.
+	- Added loadMessages() in member message component to load the thread.
+	- Added - <app-member-messages [username]="member.username"></app-member-messages> - to message tab of member details component.
+	
+190 - Styling the message thread.
+	- Designed the member message component.
+	
+191 - Activating the message tab.
+	- moved loadMessages() from member-message component to member details component.
+	- change @Input() username to messages:Message[].
+	- Added '#memberTabs' to the tabset of the member-details component.
+	- Added -(selectTab)="onTabActivated($event)" to every single tab.
+	- Added @ViewChild('memberTabs') memberTabs: TabsetComponent; to memder - details.
+	- Added to method member details 
+		onTabActivated(data: TabDirective) {
+				this.activeTab = data;
+				if(this.activeTab.heading === 'Messages' && this.messages.length === 0) { this.loadMessages(); } }
+				
+192 - Using query params (redirect to message tab from Member page after click on evelope).
+	- added selectTab() method to activate a tabe by tabid. added click event to the message button of member details page to activate message tab.
+	- added in member card html - passes query parameter- <button class="btn btn-primary mr-1" routerLink="/members/{{member.username}}" [queryParams]="{tab: 3}"> 
+				<i class="fa fa-envelope"></i> </button>
+	- added - this.route.queryParams.subscribe(params => {
+      params['tab'] ? this.selectTab(params['tab']) : this.selectTab(0); }); - in the onInit of member-details page but still gettin error for resolve the error
+	  we can use route resolver.
+
+193 - Using route resolver.
+	- Route resolver - allow us to get access to data before the compenent is contructed.
+	- removed  *ngIf="member" from html of member details.
+	- Added 'memeber-detailed-resolver.ts' in _resolvers folder. -- ng generate r memeber-detailed-resolver.ts
+	- Added a code to ger member data from member service using route params. in member-detailed-resolver.
+	- Fetch member data in member details in OnInIt from route like - this.route.data.subscribe(data => { this.member = data['member']; }); 
+	- removed the loadMember method of the member details component.
+	
+194 - Sending Messages
+	- Added sendMessage() in the message service.
+	- Added from reference to send message  - #messageForm="ngForm" (ngSubmit)="sendMessage()" 
+	- Added sendMessage() in member message  & - @ViewChild('messageForm') messageForm: NgForm; - this.messages.push(message); this.messageForm.reset();
+	
+195 - Fixing the photo weirdness.
+	- added a loading flag. [hidden]="loading" used in html as.
+	
+196 - Deleting messages on the API.
+	- Added DeleteMessage() in the MessageController.
+	- Added delete check in the GetMessagesForUser() and GetMessageThread();
+	- egarly loaded Sender and recipient in the message repository of API.
+	
+197 - Delete Messagin on the client.
+	- Added deleteMessage() in the message service message component.
+	- Added in message html - <button (click)="$event.stopPropagation()" class="btn btn-outline-danger" (click)="deleteMessage(message.id)">Delete</button>
+	
+198 - Section 15 summary.
