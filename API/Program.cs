@@ -20,7 +20,7 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-app.MigrateDatabase(app);
+await app.MigrateDatabase(app);
 
 // using var scope  = app.Services.CreateScope();
 // var service = scope.ServiceProvider;

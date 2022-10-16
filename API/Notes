@@ -636,3 +636,180 @@
 	- Added in message html - <button (click)="$event.stopPropagation()" class="btn btn-outline-danger" (click)="deleteMessage(message.id)">Delete</button>
 	
 198 - Section 15 summary.
+
+-- Section 20 - Identity and role management.
+
+199 - Introduction.
+	- Refactor our code to use ASP.NET Identity and gain an uderstanding of the following
+	- 1. Using .Net Identity
+	- 2. Role Management
+	- 3. Policy based authorisation
+	- 4. UserManager<T>
+	- 5. SignInManager<T>
+	- 6. RoleManager<T>
+	Why?
+	- Battle hardened, written and tested by Microsoft.
+	- Comes with a password hasher with 10,000 salt iterations.
+	- Full framework for managing members and roles.
+	- Provides an Entity Framework schema to create the needed tables.
+	- Highly customisable.
+	
+
+200 - Setting up the entities
+	- Appuser implement the IdentityUser. and removed 4 columns from AppUser. AppUser: IdentityUser<int>
+	- Added AppUserRole: : IdentityUserRole<int> class with properties.
+	- Added AppRole: IdentityRole<int> class in entities.
+	- Added in AppUser Entity - public Icollection<AppUserRole> UserRoles { get; set; }
+	- Removed the Using HAMC and password hash and salt from account controller and seed.cs
+	
+201 - Configuring the DbContext.
+	- Installed nuget - Microsoft.AspNetCore.Identity.EntityFrameworkCore
+	- removed DbContext from DataContext and implemented IdentityDbContext. Public class DataContext : IdentityDbContext
+	- Modified DataContext - public class DataContext : IdentityDbContext<AppUser, AppRole, int, IdentityUserClaim<int>, AppUserRole, IdentityUserLogin<int>, 
+                               IdentityRoleClaim<int>, IdentityUserToken<int>>
+	- builder.Entity<AppUser>()
+                   .HasMany(ur => ur.UserRoles)
+                   .WithOne(u => u.User)
+                   .HasForeignKey(ur => ur.UserId)
+                   .IsRequired();
+
+             builder.Entity<AppRole>()
+                   .HasMany(ur => ur.UserRoles)
+                   .WithOne(u => u.Role)
+                   .HasForeignKey(ur => ur.RoleId)
+                   .IsRequired();
+
+202 - Configuring the startup class.
+	- services.AddIdentity - better to use with mvc (razor) type application where server generate html 
+	- Modified ApplicationServiceExtention method().
+		 services.AddIdentityCore<AppUser>(opt => {
+                opt.Password.RequireNonAlphanumeric = false;
+            })
+            .AddRoles<AppRole>()
+            .AddRoleManager<RoleManager<AppRole>>()
+            .AddSignInManager<SignInManager<AppUser>>()
+            .AddRoleValidator<RoleValidator<AppRole>>()
+            .AddEntityFrameworkStores<DataContext>();
+			
+203 - Refactoring and adding a new migration.
+	- Added migration - dotnet ef migrations add IdentityAdded
+	- Commentted the  //seed.seedUser(context); from program.cs
+	- dotnet run - run API for create alter db changes based on migrations.
+	
+204 - Updating the seed method.
+	- Modified SeedUser method from seedUser(DataContext context) to 
+	- modified the seedUser Method()
+		if(await userManager.Users.AnyAsync()) return;
+		await userManager.CreateAsync(user, "pa$$word");
+	- meker seedUser method as async Task
+	- Modified MigrateDatabase of DataMigrationServiceExtention
+		async Task<WebApplication> MigrateDatabase(this WebApplication services, WebApplication host)
+		var userManage = service.GetRequiredService<UserManager<AppUser>>();
+		await seed.seedUser(userManage);
+	- Stop application - drop database (dotnet ef database drop) - restart application.
+	
+205 - Updating the account controller.
+	- Bring UserManager<AppUser> userManager, SignInManager<AppUser> signInManager in usercontroller.
+	- Modified Register methods. -  
+		var result = await _userManager.CreateAsync(user, register.Password);
+		 if(!result.Succeeded) return BadRequest(result.Errors);
+	- Modified Login method.
+		var user = await _userManager.Users.Include(x => x.Photos)
+            .SingleOrDefaultAsync(x => x.UserName == loginDto.Username.ToLower());
+			 var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.password, false);
+            if(!result.Succeeded) return Unauthorized();
+		Modified UserExists method update _context to _userManager.
+		
+206 - Adding role to the app.
+	- Added RoleManager<AppRole> roleManager in the SeedUser().
+	- Modified the SeedUser()
+		var roles = new List<AppRole>  { new AppRole{ Name="Member"}, new AppRole{ Name="Admin"}, new AppRole{ Name="Moderator"} };
+            foreach(var role in roles) { await roleManager.CreateAsync(role); }
+			await userManager.AddToRoleAsync(user, "Member");
+			 var admin = new AppUser { UserName = "admin" };
+            await userManager.CreateAsync(admin, "Pa$$w0rd");
+            await userManager.AddToRolesAsync(admin, new[] {"Admin", "Moderator"});
+	- modified MigrateDatabase() passed RoleManager
+		var roleManager = service.GetRequiredService<RoleManager<AppRole>>();
+		await seed.seedUser(userManage, roleManager);
+
+207 - Adding role to the jwt token.
+	- Modified TokenService - Added UserManager<AppUser> userManager
+		 var roles = await _userManager.GetRolesAsync(user);
+		claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+	- Modified AbstractControl-Register() - Added user to 'Member' role after register.
+		var roleResult = await _userManager.AddToRoleAsync(user, "Member");
+		if(!roleResult.Succeeded) return BadRequest(roleResult.Errors);
+	- Added [Authorize(Roles = "Admin")] attribute to GetUsers and [Authorize(Roles = "Member")] to GetUser() for testing, after testing removed it.
+	
+208 - Adding policy based authorisation.
+	- Added AdminController - Created 2 methods and added Authorization with policy, - [Authorize(Policy = "RequiredAdminRole")], [Authorize(Policy = "ModeratePhotorole")]
+	- Modified() of IdentityServiceExtention() Added new policies.
+		 services.AddAuthorization(opt => {
+                opt.AddPolicy("RequiredAdminRole", policy => policy.RequireRole("Admin"));
+                opt.AddPolicy("ModeratePhotoRole", policy => policy.RequireRole("Admin", "Moderator"));
+            });
+			
+209 - Getting the users with roles.
+	- Modified GetUserWithRoles() -  var users = await _userManager.Users
+                        .Include(r => r.UserRoles)
+                        .ThenInclude(r => r.Role)
+                        .OrderBy(u => u.UserName)
+                        .Select(u => new {
+                            u.Id,
+                            u.UserName,
+                            Roles = u.UserRoles.Select(r => r.Role.Name).ToList()}).ToListAsync();
+            return Ok(users);
+			
+210 - Editing user roles.
+		Added EditRoles() in the admin controller
+		
+211 - Adding an Admin component.
+	- Added Admin-Panel component in Admin folder.
+	- Added link in router and nav.
+	
+212 - Adding an admin guard.
+	- Added getDecodedToken() in accountService.
+	- Added roles field in the User interface.
+	- Updated setCurrentUser() of accountService
+		user.roles = [];
+		const roles = this.getDecodedToken(user.token).role;
+		Array.isArray(roles) ? user.roles = roles : user.roles.push(roles);
+	- Added admin guard - ng g guard admin --skip-tests (canActivated)
+	- Configuredthe admin guard to return true if user in Admin or Moderator role else false.
+	- Added in routing - {path:'admin', component:AdminPanelComponent, canActivate:[AdminGuard]}
+	
+213 - Adding a custom directive.
+	- Added _directives folde in app folder to store directives.
+	- Added a new directive - ng g d has-role --skip-tests
+	- configured ther directive and used in nav - <li class="nav-item" *appHasRole="['Admin', 'Moderator']">
+	
+214 - Adding the edit roles component.
+	- Added two components 1.ng g c user-management 2- ng g c photo-management
+	- Added html tabs for User Management and photo management in the Admin panel component.
+	- Added Admin service - ng g s admin --skip-tests
+	- Added getUserWithRoles() in Admin servcice.
+	- Added getUsersWithRoles() in user-management component.
+
+215 - Setting up modals (Add/Edit roles)
+	- imported ModalModule in shared module and export - import { ModalModule } from 'ngx-bootstrap/modal'
+	- Added new comonent in modals folder - ng g c roles-modal
+	- Copy & paste example html code in roles-modal - from - https://valor-software.com/ngx-bootstrap/#/components/modals?tab=overview 
+	- Copy & paste example code to open modal with configuration from - https://valor-software.com/ngx-bootstrap/#/components/modals?tab=overview 
+	- Added click event on user-management html button to open modal.
+
+216 - Editing roles in the client.
+	- Modified the roles-modal component.
+		@Input() updateSelectedRoles = new EventEmitter();
+		 updateRoles() {
+		this.updateSelectedRoles.emit(this.roles);
+		this.bsModalRef.hide(); }
+	-  Modified the html of role-modal compenent.
+
+217 - Editing roles in the client. Part -2
+	- Added updateUserRoles() in the Admin servcice.
+	- Modified openRolesModal() of  user-management.
+	- Added getRolesArray() in user-management.
+	- 
+
+218 - Section 16 Summary.
