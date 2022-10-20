@@ -3,6 +3,7 @@ using API.Entities;
 using API.Helpers;
 using API.Interfaces;
 using API.Service;
+using API.SignalR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,6 +23,7 @@ namespace API.Extentions
             .AddRoleValidator<RoleValidator<AppRole>>()
             .AddEntityFrameworkStores<DataContext>();
 
+            services.AddSingleton<PresenceTracker>();
             services.Configure<CloudinarySetting>(config.GetSection("CloudinarySetting"));
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IPhotoservice, PhotoService>();

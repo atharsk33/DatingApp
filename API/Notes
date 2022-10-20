@@ -813,3 +813,178 @@
 	- 
 
 218 - Section 16 Summary.
+
+-- Section 17 SingnalR
+
+219 - Introduction 
+	- Implement SignalR into our application and understand how to:
+	1. Use and set up SignalR on both the API and the client.
+	2. Implement online presence
+	3. Implement live chat between users.
+	
+	What is SignalR?
+	- Open source library that provides real-time web functionality to apps
+	- Good for :
+			- Dashboard and monitoring apps
+			- Collaborative apps.
+			- Apps that require notofications.
+			- Chat apps.
+	Features :
+		- Handles connection management automatically.
+		- Sends messages to all connected clients simultaneously.
+		- Sends messages to specific clients or groups of clients.
+		- Supports:
+			- WebSockets
+			- Server-Sent events
+			- Long polling
+		- Offers client side npm package.	
+		
+220 - Adding a presence hub.
+	- Added a SignalR folder in the API.
+	- Added PresenceHub : Hub in SignalR folder.
+		public override async Task OnConnectedAsync() 
+		{
+			await Clients.Others.SendAsync("UserIsOnline", Context.User.GetUserName());
+		}   
+		public override async Task OnDisconnectedAsync(Exception exception) 
+		{
+			await Clients.Others.SendAsync("UserIsOffline", Context.User.GetUserName());
+			await base.OnDisconnectedAsync(exception);
+		}
+	- Modified the program.cs
+		- builder.Services.AddSignalR();
+		- app.MapHub<PresenceHub>("hubs/presence");
+
+221 - Authenticating SignalR.
+	- Added to PresenceHub - [Authorize]
+	- Added in AddIdentityServices() of IdentityServiceExtention().
+				option.Events = new JwtBearerEvents  {
+                    OnMessageReceived = context => {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if(!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))                        
+                            context.Token = accessToken;                       
+                        return Task.CompletedTask;
+                    }
+                };
+	- Modified program.cs  - app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins("https://localhost:4200"));
+	
+222 - Client side SignalR.
+	- Install signalr pakage - npm install @microsoft/signalr
+	- Added in environment.ts -  hubUrl: 'https://localhost:5001/hubs/'
+	- Added presence service - ng g s presence --skip-tests
+	- Added in presence service	
+		createHubConnection(user: User) {
+			this.hubConnection = new HubConnectionBuilder()
+			.withUrl(this.hubUrl + 'presence', {
+				accessTokenFactory: () => user.token
+			})
+			.withAutomaticReconnect() 
+			.build()
+		
+			this.hubConnection
+			.start()
+			.catch(error => console.log(error));
+		
+			this.hubConnection.on("UserIsOnlibe", username => {
+				this.toastr.info(username + ' has connected');
+			});
+		
+			this.hubConnection.on("UserIsOffline", username => {
+				this.toastr.warning(username + ' has disconnected');
+			});
+		}
+		
+		stopHubConnection() {
+			this.hubConnection.stop().catch(error => console.log(error));
+		}
+		
+	- Modified account service to start and stop hubconnection on login and logout.
+
+223 - Adding a presece tracker.
+	- Added PresenceTracker class and in thar UserConnected(), UserDisconnetec() and GetOnlineUser() methods.
+	- Stores the online user rocord in Dictionary<string, List<string>>, where key is username and list is connection of user with different devices.
+	- Added in the AddApplicationServices() -  services.AddSingleton<PresenceTracker>();
+	- Modified OnConnectedAsync() and OnDisconnectedAsync() of PresenceHub.
+	
+224 - Displaying online presence
+	- Modified the PresenceService
+		 private onlineUsersSource = new BehaviorSubject<string[]>([]);
+		 onlineUser$ = this.onlineUsersSource.asObservable();
+		 this.hubConnection.on('GetOnlineUsers', (usernames: string[]) => {
+				this.onlineUsersSource.next(usernames);
+			});
+	- Added to member card html
+			<span [class.is-online]="(presence.onlineUsers$ | async).includes(member.username)">
+                <i class="fa fa-user mr-2"></i>
+            </span>   
+	- Added online status to the member details html.
+	
+225 - Creating a message hub.
+	- Added MessageHub : Hub calss in the SignalR folder.
+	- Override OnConnectedAsync() and OnDisconnectedAsync() methods.
+	- Added in program.cs - app.MapHub<MessageHub>("hubs/message");
+
+226 - Adding the send message method to the hud.
+	- Added SendMessage() in the MessageHub.
+
+227 - Adding the hub connection to the message service.
+	- Added message hub connection in message service.
+		private hubConnection: HubConnection;
+		private messageThreadSource = new BehaviorSubject<Message[]>([]);
+		messageThread$ = this.messageThreadSource.asObservable();
+	- Added createHubConnection() and stopHubConnection() methods as well.
+
+228 - Refactoring the message components to use the hub.
+	- removed [messages]="messages" from member details html.
+	- used the createHubConnection() and stopHubConnection() inthe member details compenent.
+
+229 - Sending message via the hub.
+	- Modified createHubConnection() of message service to receive send messages.
+	- Modified the sendMessage() of the message service.
+	- Modified sendMessage() of the member message component.
+	
+
+230 - Tracking the message groups. (API)
+	- Added Group.cs and Connection.cs Entities.
+	- Added AddGroup(), RemoveConnection(), GetConnection() and GetMessageGroup() in the IMessageRepository.
+	- Implemented new added methods in the MessageRepository.
+	- Updated the DataContext for newly added Entities.
+	- Added a migrations and restart the API.
+
+231 - Updating the message hub with group tracking.
+	- Added AddToGroup() and RemoveFromMessageGroup() from the MessageHub.
+	         var gropName = GetGroupName(sender.UserName, receipient.UserName);
+             var group = await _messageRepository.GetMessageGroup(gropName);
+             if(group.Connections.Any(x => x.UserName == receipient.UserName))
+				message.DateRead = DateTime.UtcNow;             
+
+232 - Dealing with UTC data format.
+	- Uses UTC accross all the application.
+	- Added in automapper profiles - CreateMap<DateTime, DateTime>().ConvertUsing(d => DateTime.SpecifyKind(d, DateTimeKind.Utc));
+
+233 - Notifying users when they receive a message.
+	- Added GetConnectionForUser() in the PresenceTracker.
+	- Added reference of PresenceTracker and PresenceHub in the MessageHub.
+	- checked the receipient connection if avaliable then send NewMessagereceived.
+	- Added to the presece service
+		this.hubConnection.on('NewMessageReceived', ({username, knownAs}) => {
+        this.toastr.info(knownAs + ' has sent you a new message!')
+          .onTap
+          .pipe(take(1))
+          .subscribe(() => this.router.navigateByUrl('/members/' + username + '?tab=3'));
+      });
+
+234 - Optimizing the presence.
+	- Optimize the PresenceHub, PresenceTracker and PresenceService.ts
+
+235 - Optimizing the messages.
+	- Added GetGroupForConnection() in Message repository.
+	- Refactor the MessageHub.cs
+	- Added Group.ts for conections.
+	- Modified createHubConnection() of message servcice.
+
+236 - section 17 Summary.
+		
+		
+		
