@@ -985,6 +985,61 @@
 	- Modified createHubConnection() of message servcice.
 
 236 - section 17 Summary.
-		
-		
-		
+
+-- Section 18 - Unit of work pattern and finishing touches.
+
+237	- Introduction
+	- Implement the Unit of work pattern and gain an uderstanding of the following
+	1. The Unit of Work pattern
+	2. Optimizing queries to the DB
+	3. Adding a confirm dialog servcice
+	4. Finishing touches.
+	
+	Unit of Work : Maintain a list of objects affected by a business transaction and cordenates
+	the writing of changes.
+	- Transactions
+	- SaveChanges should be in one place.
+	
+238	- Implementing the unit of work.
+	- Added IUnitOfWork.cs in interface folder.
+	- Added UnitOfWork : IUnitOfWork in the data folder and implement the interface.
+	- Added in AddApplicationServices() of ApplicationServiceExtention - services.AddScoped<IUnitOfWork, UnitOfWork>();
+	- Removed SaveAllAsync() from all repostories.
+
+239 - Refactoring the controllers to use the unit of work.
+	- Ctrl + shift + L to select all similar object to update.
+	- Removed repository from likes controller.
+	- Injected UnitOfWork in likes controller and update all the references.
+	- Removed Repository from Messag controller and injected UnitOfWork & updated the reference.
+	- Modified OnActionExecutionAsync() of LogUserActivity to use unitofwork.
+	- Removed repository from all the places and user the unitofwork
+	- Removed await _context.SaveChangesAsync(); from GetMessageThread() and updated in OnConnectedAsync() - if(_unitOfWork.HasChanges()) await _unitOfWork.Complete();
+
+240 - Optimizing queries part one.
+	- Modified the GetMessageThread() of Message repository.
+	- Modified the GetMessagesForUser() as well and added [JsonIgnore]
+
+241 - Fixing UTC dates again.
+	- Adde UtcDateAnnotation class below the DataContext class to resolve the UTC problem.
+
+242 - Optimizing query part 2.
+	- Added a seperate method to get user age.
+
+243 - Adding a confirmation service to the angular app.
+	- Added confirm service - ng g s confirm --skip-tests
+	- declare bsModelRef: BsModalRef; and injected BsModalService in the confirm servcice.
+	- Added confirm() method.
+	- Added confirm component in the Modals -- ng g c confirm-dialog
+	- Declare few properties and added confirm() and decline().
+	- desiged the html of conftim html component.
+
+244 - Getting the data from the confirmation modal.
+	- Modified confirm() and added getResult() in the confirm servcice.
+	- Injected Confirm servcice to the PreventUnsavedChangesGuard.
+	- Modified the canDeactivate() of PreventUnsavedChangesGuard.
+	- Modified deleteMessage() of message component.
+	- added confirmation to delete message in message component.
+
+245 - Tidying up the member message compenent.
+
+246 - Section 18 Summary.

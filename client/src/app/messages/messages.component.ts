@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
 import { Message } from '../_models/message';
 import { Pagination } from '../_models/pagination';
+import { ConfirmService } from '../_services/confirm.service';
 import { MessageService } from '../_services/message.service';
 
 @Component({
@@ -17,7 +18,8 @@ export class MessagesComponent implements OnInit {
   pageSize = 5;
   loading = false;
 
-  constructor(private messageService:MessageService, private toastr:ToastrService) { }
+  constructor(private messageService: MessageService, private toastr: ToastrService,
+    private confirmService: ConfirmService) { }
 
   ngOnInit(): void {
     this.loadMessages();
@@ -25,7 +27,7 @@ export class MessagesComponent implements OnInit {
 
   loadMessages() {
     this.loading = true;
-    this.messageService.getMessages(this.pagenumber, this.pageSize, this.container). subscribe(response => {
+    this.messageService.getMessages(this.pagenumber, this.pageSize, this.container).subscribe(response => {
       this.messages = response.result;
       this.pagination = response.pagination;
       this.loading = false;
@@ -33,9 +35,16 @@ export class MessagesComponent implements OnInit {
   }
 
   deleteMessage(id: number) {
-    this.messageService.deleteMessage(id).subscribe(() => {
-      this.messages.splice(this.messages.findIndex(m => m.id == id), 1);
-    });
+    this.confirmService.confirm('Confirm delete message',
+      'Are you sure you want to delete this',
+      'Delete').subscribe(result => {
+        if (result) {
+          this.messageService.deleteMessage(id).subscribe(() => {
+            this.messages.splice(this.messages.findIndex(m => m.id == id), 1);
+          });
+        }
+      });
+
   }
 
 }
