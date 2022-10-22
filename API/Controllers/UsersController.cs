@@ -46,7 +46,8 @@ namespace API.Controllers
         [HttpGet("{username}", Name = "GetUser")]
         public async Task<ActionResult<MemberDto>> GetUser(string username)
         {
-            return await _unitOfWork.UserRepository.GetMemberAsync(username);
+            var isCurrentUser = User.GetUserName() == username;
+            return await _unitOfWork.UserRepository.GetMemberAsync(username, isCurrentUser);
         }
 
         [HttpPut]
@@ -79,17 +80,16 @@ namespace API.Controllers
                 PublicId = result.PublicId
             };
 
-            if (user.Photos.Count == 0)
-            {
-                photo.IsMain = true;
-            }
+            // if (user.Photos.Count == 0)
+            // {
+            //     photo.IsMain = true;
+            // }
 
             user.Photos.Add(photo);
 
             if (await _unitOfWork.Complete())
             {
                 //return _mapper.Map<PhotoDto>(photo);
-
                 return CreatedAtRoute("GetUser", new { username = user.UserName }, _mapper.Map<PhotoDto>(photo));
             }
 
@@ -126,7 +126,7 @@ namespace API.Controllers
 
             if(photo.PublicId != null)
             {
-                var result = await _photoservice.DeletePhotAsync(photo.PublicId);
+                var result = await _photoservice.DeletePhotoAsync(photo.PublicId);
                 if(result.Error != null) return BadRequest(result.Error.Message);
             }
 

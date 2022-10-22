@@ -31,6 +31,7 @@ namespace API.Data
             foreach (var user in users)
             {
                 user.UserName = user.UserName?.ToLower();
+                user.Photos.First().isApproved = true;
 
                 // before entity
                 //using var hmac = new HMACSHA512();

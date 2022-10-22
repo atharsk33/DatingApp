@@ -5,6 +5,7 @@ using API.Interfaces;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace API.Data
 {
@@ -18,10 +19,14 @@ namespace API.Data
             _context = context;
         }
 
-        public async Task<MemberDto> GetMemberAsync(string username)
+        public async Task<MemberDto> GetMemberAsync(string username,bool isCurrentUser)
         {
-           return await _context.Users.Where(x => x.UserName == username)
-                                .ProjectTo<MemberDto>(_mapper.ConfigurationProvider)
+            var users = _context.Users.Where(u => u.UserName == username).AsQueryable();
+
+            if(isCurrentUser)
+                users = users.IgnoreQueryFilters();
+
+           return await users.ProjectTo<MemberDto>(_mapper.ConfigurationProvider)
                                 .SingleOrDefaultAsync();
         }
 

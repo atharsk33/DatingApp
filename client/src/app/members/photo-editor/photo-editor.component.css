@@ -1,5 +1,5 @@
 img.img-thumbnail {
-    height:px;
+    height: px;
     min-width: 100px !important;
     margin-bottom: 2px;
 }
@@ -10,4 +10,21 @@ img.img-thumbnail {
 
 input[type=file] {
     color: transparent;
+}
+
+.unapprovedphoto {
+    opacity: 0.2;
+}
+
+.awaitingtext {
+    position: absolute;
+}
+
+.img-wrapper {
+    position: relative
+}
+
+.img-text {
+    position: absolute;
+    bottom: 30%;
 }

@@ -24,7 +24,7 @@ export class PhotoEditorComponent implements OnInit {
     this.accountService.currentUser$.pipe(take(1)).subscribe(user => {
       this.user = user;
     });
-    console.log(this.user);
+    //console.log(this.user);
    }
 
   ngOnInit(): void {
