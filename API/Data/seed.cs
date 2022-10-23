@@ -32,6 +32,8 @@ namespace API.Data
             {
                 user.UserName = user.UserName?.ToLower();
                 user.Photos.First().isApproved = true;
+                user.Created = DateTime.UtcNow;
+                user.LastActive = DateTime.UtcNow;
 
                 // before entity
                 //using var hmac = new HMACSHA512();
