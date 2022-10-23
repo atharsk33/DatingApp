@@ -18,6 +18,7 @@ export class MemberMessagesComponent implements OnInit {
   //messages: Message[] = [];
   @Input() messages:Message[];
   messageContent: string;
+  loading = false;
   
 
   constructor(public messageService:MessageService, private toastr: ToastrService) { }
@@ -27,11 +28,13 @@ export class MemberMessagesComponent implements OnInit {
   }
 
   sendMessage() {
+    this.loading = true;
     this.messageService.sendMessage(this.username, this.messageContent)
         .then(() => {
           this.messageForm.reset();
         //  this.toastr.success('Message sent successfully!');
-        } );
+        } )
+        .finally(() => this.loading = false);
   }
 
   // sendMessage() {
